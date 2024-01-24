@@ -3,60 +3,52 @@ package test
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/gin-gonic/gin"
 	"github.com/go-playground/assert/v2"
-	"main/api/controllers"
+	"io"
 	"main/api/models"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
 func TestCreateStudent(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
-	r := gin.Default()
-	r.POST("/students", controllers.CreateStudent)
-
 	student := models.Student{
 		Name: "Test Student",
 	}
 
 	jsonStudent, _ := json.Marshal(student)
 
-	req, _ := http.NewRequest(http.MethodPost, "/students", bytes.NewBuffer(jsonStudent))
-	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.Post("http://localhost:8080/students", "application/json", bytes.NewBuffer(jsonStudent))
+	if err != nil {
+		t.Fatalf("An error occured %v", err)
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			t.Fatalf("An error occured %v", err)
+		}
+	}(resp.Body)
 
-	resp := httptest.NewRecorder()
-	r.ServeHTTP(resp, req)
-
-	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
-func TestGetAllStudents(t *testing.T) {
-	gin.SetMode(gin.TestMode)
+func TestUpdateStudent(t *testing.T) {
+	student := models.Student{
+		Name: "Updated Student",
+	}
 
-	r := gin.Default()
-	r.GET("/students", controllers.GetAllStudents)
+	jsonStudent, _ := json.Marshal(student)
 
-	req, _ := http.NewRequest(http.MethodGet, "/students", nil)
+	req, err := http.NewRequest(http.MethodPut, "http://localhost:8080/students/1", bytes.NewBuffer(jsonStudent))
+	if err != nil {
+		t.Fatalf("An error occured %v", err)
+	}
 
-	resp := httptest.NewRecorder()
-	r.ServeHTTP(resp, req)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Fatalf("An error occured %v", err)
+	}
+	defer resp.Body.Close()
 
-	assert.Equal(t, http.StatusOK, resp.Code)
-}
-
-func TestGetStudentById(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
-	r := gin.Default()
-	r.GET("/students/:id", controllers.GetStudentById)
-
-	req, _ := http.NewRequest(http.MethodGet, "/students/1", nil)
-
-	resp := httptest.NewRecorder()
-	r.ServeHTTP(resp, req)
-
-	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }

@@ -1,9 +1,11 @@
 package models
 
+import "gorm.io/gorm"
+
 type Student struct {
-	Code    uint            `json:"code" sql:"" gorm:"primary_key"`
-	Name    string          `json:"name" gorm:"size:50"`
-	Courses []CourseStudent `json:"courses" gorm:"foreignKey:StudentCode"`
+	gorm.Model
+	Name    string          `json:"name" gorm:"size:50;not null" validate:"required"`
+	Courses []CourseStudent `gorm:"foreignKey:StudentCode"`
 }
 
 func (s *Student) Validate() error {

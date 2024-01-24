@@ -1,12 +1,15 @@
 package models
 
-import "github.com/go-playground/validator/v10"
+import (
+	"github.com/go-playground/validator/v10"
+	"gorm.io/gorm"
+)
 
 type Course struct {
-	Code        uint            `json:"code" gorm:"primary_key auto_increment"`
-	Description string          `json:"description" gorm:"size:50"`
-	Syllabus    string          `json:"syllabus" gorm:"type:text"`
-	Students    []CourseStudent `json:"students" gorm:"foreignKey:CourseCode"`
+	gorm.Model
+	Description string          `json:"description" gorm:"size:50;not null" validate:"required"`
+	Syllabus    string          `json:"syllabus" gorm:"type:text;not null" validate:"required"`
+	Students    []CourseStudent `gorm:"foreignKey:CourseCode"`
 }
 
 var validate *validator.Validate
