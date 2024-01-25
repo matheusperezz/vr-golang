@@ -1,10 +1,11 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
 	"main/api/database"
 	"main/api/models"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func GetAllStudents(c *gin.Context) {
@@ -29,7 +30,26 @@ func GetStudentById(c *gin.Context) {
 		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	c.JSON(http.StatusOK, student)
+
+	var coursesStudents []models.CourseStudent
+	if err := database.DB.Where("student_code = ?", studentId).Find(&coursesStudents).Error; err != nil {
+		c.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
+	var courses []models.Course
+	for _, courseStudent := range coursesStudents {
+		var course models.Course
+		if err := database.DB.Where("id = ?", courseStudent.CourseCode).First(&course).Error; err != nil {
+			c.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+		courses = append(courses, course)
+	}
+
+	studentDto := models.ConvertStudentToStudentDto(student, courses)
+
+	c.JSON(http.StatusOK, studentDto)
 }
 
 func CreateStudent(c *gin.Context) {
@@ -84,20 +104,4 @@ func DeleteStudent(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Student deleted successfully!"})
-}
-
-func GetStudentCourses(c *gin.Context) {
-	var courses []models.Course
-	studentId := c.Params.ByName("id")
-	if err := database.DB.Where("student_id = ?", studentId).Find(&courses).Error; err != nil {
-		c.AbortWithStatus(http.StatusNotFound)
-		return
-	}
-
-	if len(courses) <= 0 {
-		c.JSON(http.StatusOK, gin.H{"message": "No courses found!"})
-		return
-	}
-
-	c.JSON(http.StatusOK, courses)
 }

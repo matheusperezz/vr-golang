@@ -1,8 +1,9 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
 	"main/api/controllers"
+
+	"github.com/gin-gonic/gin"
 )
 
 func SetupRoutes(router *gin.Engine) *gin.Engine {
@@ -12,7 +13,6 @@ func SetupRoutes(router *gin.Engine) *gin.Engine {
 		{
 			students.GET("/", controllers.GetAllStudents)
 			students.GET("/:id", controllers.GetStudentById)
-			students.GET("/:id/courses", controllers.GetStudentCourses)
 			students.POST("/", controllers.CreateStudent)
 			students.PUT("/:id", controllers.UpdateStudent)
 			students.DELETE("/:id", controllers.DeleteStudent)

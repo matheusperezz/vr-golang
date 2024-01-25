@@ -8,6 +8,20 @@ type Student struct {
 	Courses []CourseStudent `gorm:"foreignKey:StudentCode"`
 }
 
+type StudentDto struct {
+	ID      uint     `json:"id"`
+	Name    string   `json:"name"`
+	Courses []Course `json:"courses"`
+}
+
 func (s *Student) Validate() error {
 	return validate.Struct(s)
+}
+
+func ConvertStudentToStudentDto(student Student, courses []Course) StudentDto {
+	return StudentDto{
+		ID:      student.ID,
+		Name:    student.Name,
+		Courses: courses,
+	}
 }
