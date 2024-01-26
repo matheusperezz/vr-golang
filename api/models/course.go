@@ -12,6 +12,13 @@ type Course struct {
 	Students    []CourseStudent `gorm:"foreignKey:CourseCode"`
 }
 
+type CourseDto struct {
+	ID          uint         `json:"id"`
+	Description string       `json:"description"`
+	Syllabus    string       `json:"syllabus"`
+	Students    []StudentDto `json:"students"`
+}
+
 var validate *validator.Validate
 
 func init() {
@@ -20,4 +27,17 @@ func init() {
 
 func (c *Course) Validate() error {
 	return validate.Struct(c)
+}
+
+func ConvertCourseToCourseDto(course Course, students []Student) CourseDto {
+	var studentDtos []StudentDto
+	for _, student := range students {
+		studentDtos = append(studentDtos, ConvertStudentToStudentDto(student, []Course{}))
+	}
+	return CourseDto{
+		ID:          course.ID,
+		Description: course.Description,
+		Syllabus:    course.Syllabus,
+		Students:    studentDtos,
+	}
 }

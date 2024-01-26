@@ -1,10 +1,11 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
 	"main/api/database"
 	"main/api/models"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func GetAllCourses(c *gin.Context) {
@@ -19,7 +20,29 @@ func GetAllCourses(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, courses)
+	var coursesDto []models.CourseDto
+	for _, course := range courses {
+		var studentsCourse []models.CourseStudent
+		if err := database.DB.Where("course_code = ?", course.ID).Find(&studentsCourse).Error; err != nil {
+			c.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+
+		var students []models.Student
+		for _, studentCourse := range studentsCourse {
+			var student models.Student
+			if err := database.DB.Where("code = ?", studentCourse.StudentCode).First(&student).Error; err != nil {
+				c.AbortWithStatus(http.StatusNotFound)
+				return
+			}
+			students = append(students, student)
+		}
+
+		courseDto := models.ConvertCourseToCourseDto(course, students)
+		coursesDto = append(coursesDto, courseDto)
+	}
+
+	c.JSON(http.StatusOK, coursesDto)
 }
 
 func GetCourseById(c *gin.Context) {
@@ -29,7 +52,26 @@ func GetCourseById(c *gin.Context) {
 		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	c.JSON(http.StatusOK, course)
+
+	var studentsCourse []models.CourseStudent
+	if err := database.DB.Where("course_code = ?", courseId).Find(&studentsCourse).Error; err != nil {
+		c.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
+	var students []models.Student
+	for _, studentCourse := range studentsCourse {
+		var student models.Student
+		if err := database.DB.Where("code = ?", studentCourse.StudentCode).First(&student).Error; err != nil {
+			c.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+		students = append(students, student)
+	}
+
+	courseDto := models.ConvertCourseToCourseDto(course, students)
+
+	c.JSON(http.StatusOK, courseDto)
 }
 
 func CreateCourse(c *gin.Context) {
@@ -42,6 +84,11 @@ func CreateCourse(c *gin.Context) {
 	err := course.Validate()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(course.Students) == 10 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "O curso não pode ter mais de 10 alunos!"})
 		return
 	}
 
@@ -63,6 +110,11 @@ func UpdateCourse(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&course); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	if len(course.Students) == 10 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "O curso não pode ter mais de 10 alunos!"})
 		return
 	}
 

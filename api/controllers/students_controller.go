@@ -20,7 +20,29 @@ func GetAllStudents(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, students)
+	var studentsDto []models.StudentDto
+	for _, student := range students {
+		var coursesStudents []models.CourseStudent
+		if err := database.DB.Where("student_code = ?", student.ID).Find(&coursesStudents).Error; err != nil {
+			c.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+
+		var courses []models.Course
+		for _, courseStudent := range coursesStudents {
+			var course models.Course
+			if err := database.DB.Where("id = ?", courseStudent.CourseCode).First(&course).Error; err != nil {
+				c.AbortWithStatus(http.StatusNotFound)
+				return
+			}
+			courses = append(courses, course)
+		}
+
+		studentDto := models.ConvertStudentToStudentDto(student, courses)
+		studentsDto = append(studentsDto, studentDto)
+	}
+
+	c.JSON(http.StatusOK, studentsDto)
 }
 
 func GetStudentById(c *gin.Context) {
@@ -65,6 +87,11 @@ func CreateStudent(c *gin.Context) {
 		return
 	}
 
+	if len(student.Courses) == 3 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Estudantes não podem se matricular em mais de 3 cursos"})
+		return
+	}
+
 	if dbErr := database.DB.Create(&student).Error; dbErr != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
@@ -86,7 +113,16 @@ func UpdateStudent(c *gin.Context) {
 		return
 	}
 
-	database.DB.Save(&student)
+	if len(student.Courses) == 3 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Estudantes não podem se matricular em mais de 3 cursos"})
+		return
+	}
+
+	if dbErr := database.DB.Save(&student).Error; dbErr != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
 	c.JSON(http.StatusOK, student)
 }
 
