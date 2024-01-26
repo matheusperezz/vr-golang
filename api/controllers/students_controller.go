@@ -38,6 +38,10 @@ func GetAllStudents(c *gin.Context) {
 			courses = append(courses, course)
 		}
 
+		if courses == nil {
+			courses = []models.Course{}
+		}
+
 		studentDto := models.ConvertStudentToStudentDto(student, courses)
 		studentsDto = append(studentsDto, studentDto)
 	}
