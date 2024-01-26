@@ -9,7 +9,7 @@ type Student struct {
 }
 
 type StudentDto struct {
-	ID      uint     `json:"id"`
+	ID      uint     `json:"ID"`
 	Name    string   `json:"name"`
 	Courses []Course `json:"courses"`
 }
