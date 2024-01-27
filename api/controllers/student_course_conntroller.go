@@ -36,11 +36,11 @@ func EnrollStudentInCourse(c *gin.Context) {
 		return
 	}
 
-	// Não deixe o estudante se matricular em um curso que ele já está matriculado
+	// verifique se o aluno já está matriculado no curso
 	var courseStudentAlreadyExists models.CourseStudent
 	if err := database.DB.Where("course_code = ? AND student_code = ?", courseStudent.CourseCode, courseStudent.StudentCode).First(&courseStudentAlreadyExists).Error; err == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "O aluno já está matriculado neste curso"})
-		fmt.Println("Verificando se o aluno já está matriculado neste curso")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "O aluno já está matriculado no curso"})
+		fmt.Println("Verificando se o aluno já está matriculado no curso")
 		fmt.Println(courseStudentAlreadyExists)
 		return
 	}

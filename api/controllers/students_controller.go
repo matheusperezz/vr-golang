@@ -159,3 +159,30 @@ func DeleteStudent(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Student deleted successfully!"})
 }
+
+func GetStudentCourses(c *gin.Context) {
+	studentId := c.Params.ByName("id")
+
+	var courseStudents []models.CourseStudent
+	if err := database.DB.Where("student_code = ?", studentId).Find(&courseStudents).Error; err != nil {
+		c.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
+	var courses []models.Course
+	for _, courseStudent := range courseStudents {
+		var course models.Course
+		if err := database.DB.Where("id = ?", courseStudent.CourseCode).First(&course).Error; err != nil {
+			c.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+		courses = append(courses, course)
+	}
+
+	if len(courses) <= 0 {
+		c.JSON(http.StatusOK, gin.H{"message": "No courses found!"})
+		return
+	}
+
+	c.JSON(http.StatusOK, courses)
+}
