@@ -31,7 +31,7 @@ func GetAllCourses(c *gin.Context) {
 		var students []models.Student
 		for _, studentCourse := range studentsCourse {
 			var student models.Student
-			if err := database.DB.Where("code = ?", studentCourse.StudentCode).First(&student).Error; err != nil {
+			if err := database.DB.Where("id = ?", studentCourse.StudentCode).First(&student).Error; err != nil {
 				c.AbortWithStatus(http.StatusNotFound)
 				return
 			}
@@ -62,7 +62,7 @@ func GetCourseById(c *gin.Context) {
 	var students []models.Student
 	for _, studentCourse := range studentsCourse {
 		var student models.Student
-		if err := database.DB.Where("code = ?", studentCourse.StudentCode).First(&student).Error; err != nil {
+		if err := database.DB.Where("id = ?", studentCourse.StudentCode).First(&student).Error; err != nil {
 			c.AbortWithStatus(http.StatusNotFound)
 			return
 		}
@@ -97,7 +97,7 @@ func CreateCourse(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, course)
+	c.JSON(http.StatusCreated, course)
 }
 
 func UpdateCourse(c *gin.Context) {
@@ -134,6 +134,20 @@ func DeleteCourse(c *gin.Context) {
 		return
 	}
 
+	// Remove todos os estudantes do curso
+	var courseStudents []models.CourseStudent
+	if err := database.DB.Where("course_code = ?", courseId).Find(&courseStudents).Error; err != nil {
+		c.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
+	for _, courseStudent := range courseStudents {
+		if err := database.DB.Delete(&courseStudent).Error; err != nil {
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+	}
+
 	if dbErr := database.DB.Delete(&course).Error; dbErr != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
@@ -154,7 +168,7 @@ func GetCourseStudents(c *gin.Context) {
 	var students []models.Student
 	for _, courseStudent := range courseStudents {
 		var student models.Student
-		if err := database.DB.Where("code = ?", courseStudent.StudentCode).First(&student).Error; err != nil {
+		if err := database.DB.Where("id = ?", courseStudent.StudentCode).First(&student).Error; err != nil {
 			c.AbortWithStatus(http.StatusNotFound)
 			return
 		}

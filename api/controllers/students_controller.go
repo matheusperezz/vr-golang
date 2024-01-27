@@ -138,6 +138,20 @@ func DeleteStudent(c *gin.Context) {
 		return
 	}
 
+	// Remove o estudante de todos os cursos
+	var courseStudents []models.CourseStudent
+	if err := database.DB.Where("student_code = ?", studentId).Find(&courseStudents).Error; err != nil {
+		c.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
+	for _, courseStudent := range courseStudents {
+		if err := database.DB.Delete(&courseStudent).Error; err != nil {
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+	}
+
 	if err := database.DB.Delete(&student).Error; err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return

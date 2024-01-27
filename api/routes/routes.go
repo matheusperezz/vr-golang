@@ -31,6 +31,7 @@ func SetupRoutes(router *gin.Engine) *gin.Engine {
 		class := home.Group("/class")
 		{
 			class.POST("/", controllers.EnrollStudentInCourse)
+			class.DELETE("/", controllers.UnenrollStudentInCourse)
 		}
 	}
 	return router

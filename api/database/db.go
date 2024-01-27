@@ -2,10 +2,11 @@ package database
 
 import (
 	"fmt"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 	"log"
 	"main/api/models"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 var (
