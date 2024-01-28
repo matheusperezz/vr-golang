@@ -101,7 +101,7 @@ func CreateStudent(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, student)
+	c.JSON(http.StatusCreated, student)
 }
 
 func UpdateStudent(c *gin.Context) {
