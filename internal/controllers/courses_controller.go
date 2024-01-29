@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"main/api/database"
-	"main/api/models"
+	"main/internal/database"
+	"main/internal/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,7 +20,7 @@ func GetAllCourses(c *gin.Context) {
 		return
 	}
 
-	var coursesDto []models.CourseDto
+	var coursesDto []models.CourseListUnitDto
 	for _, course := range courses {
 		var studentsCourse []models.CourseStudent
 		if err := database.DB.Where("course_code = ?", course.ID).Find(&studentsCourse).Error; err != nil {

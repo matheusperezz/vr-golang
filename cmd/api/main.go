@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"main/api/database"
-	"main/api/routes"
+	"main/internal/database"
+	"main/internal/routes"
 )
 
 func main() {

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"main/api/models"
+	"main/internal/models"
 	"net/http"
 	"strconv"
 	"testing"
