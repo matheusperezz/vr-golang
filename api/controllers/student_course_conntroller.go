@@ -38,7 +38,14 @@ func EnrollStudentInCourse(c *gin.Context) {
 
 	// verifique se o aluno já está matriculado no curso
 	var courseStudentAlreadyExists models.CourseStudent
-	if err := database.DB.Where("course_code = ? AND student_code = ?", courseStudent.CourseCode, courseStudent.StudentCode).First(&courseStudentAlreadyExists).Error; err == nil {
+	if err := database.DB.Where("course_code = ? AND student_code = ?", courseStudent.CourseCode, courseStudent.StudentCode).First(&courseStudentAlreadyExists).Error; err != nil {
+		if err.Error() != "record not found" {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			fmt.Println("tentando encontrar o registro")
+			fmt.Println(courseStudent)
+			return
+		}
+	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "O aluno já está matriculado no curso"})
 		fmt.Println("Verificando se o aluno já está matriculado no curso")
 		fmt.Println(courseStudentAlreadyExists)
